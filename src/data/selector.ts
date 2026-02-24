@@ -74,6 +74,7 @@ export type Selector =
   | TTSSelector
   | TTSVoiceSelector
   | UiActionSelector
+  | UiClockDateFormatSelector
   | UiColorSelector
   | UiStateContentSelector
   | BackupLocationSelector;
@@ -503,6 +504,10 @@ export interface UiActionSelector {
     actions?: UiAction[];
     default_action?: UiAction;
   } | null;
+}
+
+export interface UiClockDateFormatSelector {
+  ui_clock_date_format: {} | null;
 }
 
 export interface UiColorSelector {
