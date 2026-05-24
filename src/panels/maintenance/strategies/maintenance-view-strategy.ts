@@ -28,7 +28,6 @@ export const maintenanceEntityFilters: EntityFilter[] = [
   {
     domain: "binary_sensor",
     device_class: ["battery"],
-    entity_category: "none",
   },
 ];
 
@@ -75,6 +74,37 @@ const computeBatteryTileCard = (
     entity: entityId,
     name: { type: deviceId ? "device" : "entity" },
   };
+};
+
+/**
+ * When a device has both a sensor and binary_sensor for battery,
+ * keep only the sensor (it provides a numeric percentage).
+ * Entities not associated with a device are always included.
+ */
+export const deduplicateBatteryEntities = (
+  hass: HomeAssistant,
+  entityIds: string[]
+): string[] => {
+  const bestPerDevice = new Map<string, string>();
+  const withoutDevice: string[] = [];
+
+  for (const entityId of entityIds) {
+    const deviceId = hass.entities[entityId]?.device_id;
+
+    if (!deviceId) {
+      withoutDevice.push(entityId);
+      continue;
+    }
+
+    const existing = bestPerDevice.get(deviceId);
+    const isBetterMatch = !existing || computeDomain(entityId) === "sensor";
+
+    if (isBetterMatch) {
+      bestPerDevice.set(deviceId, entityId);
+    }
+  }
+
+  return [...withoutDevice, ...bestPerDevice.values()];
 };
 
 const processAreasForBattery = (
@@ -152,7 +182,10 @@ export class MaintenanceViewStrategy extends ReactiveElement {
       generateEntityFilter(hass, filter)
     );
 
-    const entities = findEntities(allEntities, batteryFilters);
+    const entities = deduplicateBatteryEntities(
+      hass,
+      findEntities(allEntities, batteryFilters)
+    );
 
     const filteredEntities = config.issues_only
       ? filterProblematicBatteryEntities(hass, entities)
