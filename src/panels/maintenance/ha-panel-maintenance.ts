@@ -21,6 +21,7 @@ import "../lovelace/views/hui-view";
 import "../lovelace/views/hui-view-background";
 import "../lovelace/views/hui-view-container";
 import {
+  deduplicateBatteryEntities,
   filterProblematicBatteryEntities,
   maintenanceEntityFilters,
 } from "./strategies/maintenance-view-strategy";
@@ -46,7 +47,10 @@ class PanelMaintenance extends LitElement {
     const batteryFilters = maintenanceEntityFilters.map((filter) =>
       generateEntityFilter(this.hass, filter)
     );
-    const batteryEntities = findEntities(allEntities, batteryFilters);
+    const batteryEntities = deduplicateBatteryEntities(
+      this.hass,
+      findEntities(allEntities, batteryFilters)
+    );
     return filterProblematicBatteryEntities(this.hass, batteryEntities).length;
   }
 

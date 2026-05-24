@@ -36,6 +36,7 @@ import {
   type HomeSummary,
 } from "../strategies/home/helpers/home-summaries";
 import {
+  deduplicateBatteryEntities,
   filterLowBatteryEntities,
   filterUnavailableBatteryEntities,
 } from "../../maintenance/strategies/maintenance-view-strategy";
@@ -256,9 +257,9 @@ export class HuiHomeSummaryCard
           (filter) => generateEntityFilter(this.hass!, filter)
         );
 
-        const maintenanceEntities = findEntities(
-          allEntities,
-          maintenanceFilters
+        const maintenanceEntities = deduplicateBatteryEntities(
+          this.hass!,
+          findEntities(allEntities, maintenanceFilters)
         );
 
         const lowBatteryEntities = filterLowBatteryEntities(
